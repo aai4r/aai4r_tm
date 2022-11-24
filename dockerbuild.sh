@@ -1,0 +1,1 @@
+docker build --rm -t aai4r/tm -f Dockerfile .
