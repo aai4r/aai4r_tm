@@ -16,11 +16,6 @@ class TaskManagerNode(Node):
             String,
             '/aai4r/tts_req', 10)
 
-        # Publisher for TTS requests
-        self.expression_publisher = self.create_publisher(
-            String,
-            '/aai4r/expression_req', 10)
-
         # Subscriber for TTS reponses 
         self.tts_subscriber = self.create_subscription(
             String,
@@ -31,9 +26,14 @@ class TaskManagerNode(Node):
         # Subscriber for STT
         self.stt_subscriber = self.create_subscription(
             String,
-            '/aai4r/stt_res', 
+            '/aai4r/stt_event', 
             self.stt_subscriber_callback, 10)
         self.stt_subscriber  # prevent unused variable warning
+
+        # Publisher for Expression events
+        self.expression_publisher = self.create_publisher(
+            String,
+            '/aai4r/expression_event', 10)
 
     def create_msg_id(self):
         return str(uuid.uuid1())
