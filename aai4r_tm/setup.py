@@ -20,7 +20,9 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'tm_node = aai4r_tm.tm_node:main'
+            'tm_node = aai4r_tm.tm_node:main',
+            'deliverybot_node = aai4r_tm.deliverybot_node:main',
+            'tablebot_node = aai4r_tm.tablebot_node:main'
         ],
     },
 )
