@@ -35,6 +35,8 @@ class TaskManagerNode(Node):
             String,
             '/aai4r/expression_event', 10)
 
+        self.timer = self.create_timer(3, self.timer_callback)
+
     def create_msg_id(self):
         return str(uuid.uuid1())
 
@@ -72,28 +74,25 @@ class TaskManagerNode(Node):
     def stt_subscriber_callback(self, msg):
         self.get_logger().info('\nGot a STT message: "%s"' % msg.data)
 
-    def test(self):
-        while True:
-            val = input('1. TTS@homebot, 2. TTS@kitchenbot, 3. Expression@homebot, 4. Expression@kitchenbot, Enter Number: ')
-            val = int(val)
-            if val == 1:
-                self.send_tts_req('안녕하세요.', 'homebot')
-            elif val == 2:
-                self.send_tts_req('안녕하세요.', 'kitchenbot')
-            elif val == 3:
-                self.send_expression_req('EX_03', 'homebot')
-            elif val == 4:
-                self.send_expression_req('EX_03', 'kitchenbot')
-            else:
-                print("NO....")
+    def timer_callback(self):
+        val = input('1. TTS@homebot, 2. TTS@kitchenbot, 3. Expression@homebot, 4. Expression@kitchenbot, Enter Number: ')
+        val = int(val)
+        if val == 1:
+            self.send_tts_req('안녕하세요.', 'homebot')
+        elif val == 2:
+            self.send_tts_req('안녕하세요.', 'kitchenbot')
+        elif val == 3:
+            self.send_expression_req('EX_03', 'homebot')
+        elif val == 4:
+            self.send_expression_req('EX_03', 'kitchenbot')
+        else:
+            print("NO....")
 
 
 def main(args=None):
     rclpy.init(args=args)
 
     task_manager = TaskManagerNode()
-
-    task_manager.test()
 
     rclpy.spin(task_manager)
 
