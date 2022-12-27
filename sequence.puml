@@ -1,0 +1,76 @@
+@startuml aai4r_tm
+participant task_manager as tm
+participant table_bot as tb
+queue "/aai4r/robot_registration" as topic_res
+queue "/aai4r/menu" as topic_menu
+queue "/aai4r/order" as topic_order
+participant kitchen_bot as kb
+participant serve_bot as sb
+queue "/aai4r/navigation" as topic_nav
+
+group robot registration
+
+activate tb
+tb --> topic_res : REGISTRATION_REQ
+topic_res --> tm : REGISTRATION_REQ
+tb -> tb : status = 1
+tm --> topic_res : REGISTRATION_RES
+topic_res --> tb : REGISTRATION_RES
+activate tb
+tb -> tb : set_task_manager()
+tb -> tb : status = 2
+activate tb
+deactivate tb
+deactivate tb
+deactivate tb
+
+tb -> tb : if status == 1 then retry robot registration
+
+end
+
+group menu notification
+tm --> topic_menu : MENU_ITEMS_NOTI
+topic_menu -> tb : MENU_ITEMS_NOTI
+tb -> tb : set_daily_menu()
+tb -> tb : status = 3
+end
+
+group order processing
+tb -> tb : wait_for_user_order()
+tb --> topic_order : ORDER_REQ
+topic_order --> tm : ORDER_REQ
+tm --> topic_order : ORDER REQ
+topic_order --> kb : ORDER REQ
+kb --> chef : notify order
+tm --> topic_nav : NAVIGATION_REQ
+topic_nav --> sb : NAVIGATION_REQ
+sb -> sb: navigate to kitchen
+sb --> topic_nav : ARRIVAL_NOTI
+topic_nav --> tm : ARRIVAL_NOTI
+tm --> topic_order : LOAD_REQ
+topic_order --> kb : LOAD_REQ
+kb --> chef : load request
+chef --> sb : load ordered foods
+chef --> kb : notify load completed
+kb --> topic_order : LOAD_COMPLETED
+topic_order --> tm : LOAD_COMPLETED
+tm --> topic_nav : NAVIGATION_REQ
+topic_nav --> sb : NAVIGATION_REQ
+sb -> sb : navigate to table
+sb --> topic_nav : ARRIVAL_NOTI
+topic_nav --> tm : ARRIVAL_NOTI
+tm --> topic_order : ORDER_ARRIVED
+topic_order --> tb : ORDER_ARRIVED
+tb --> user : notify_order_arrival
+user --> sb : unload trays
+tb -> tb : wait_for_unload()
+user --> tb : notify unload completed (button press)
+tb --> topic_order : UNLOAD_COMPLETED
+topic_order --> tm : UNLOAD_COMPLETED
+tm --> topic_nav : NAVIGATION_REQ
+topic_nav --> sb : NAVIGATION_REQ
+sb -> sb : navigate to kitchen
+sb --> topic_nav : ARRIVAL_NOTI
+topic_nav --> tm : ARRIVAL_NOTI
+tm -> tm : order_completed()
+end

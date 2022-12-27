@@ -4,8 +4,8 @@ from rclpy.node import Node
 from std_msgs.msg import String
 
 from aai4r_tm.logging4ros2 import Logger4ROS2
-
 from aai4r_tm.deliverybot import DeliveryBot
+from threading import Thread
 
 import json
 import uuid
@@ -26,6 +26,13 @@ class DeliveryBotNode(Node):
             '/aai4r/navigation_res',
             10)
 
+
+        self.servbot_navigation_publisher = self.create_publisher(
+            String,
+            'control/move2poi',
+            10
+        )
+
         # Subscriber for Navigation requests 
         self.navigation_subscriber = self.create_subscription(
             String,
@@ -35,6 +42,19 @@ class DeliveryBotNode(Node):
         self.navigation_subscriber  # prevent unused variable warning
 
         self.send_registration_req()
+
+    def start_to_wait_for_user_order(self):
+        x = Thread(target=self.wait_for_user, args=())
+        x.start()
+
+    def wait_for_user(self):
+        # wait for user input
+        ok = input('Please type poi number(1: Table_A_4, 2:kitchen): \n')
+        if ok == 1:
+            self.move2poi('Table_A_4')
+        elif ok == 2:
+            self.move2poi('kitchen')
+        self.get_logger().info('Sent out a navigation message')
 
     def send_registration_req(self):
         msg = String()
@@ -47,7 +67,6 @@ class DeliveryBotNode(Node):
         msg.data = json.dumps(msg_data)
         self.registration_publisher.publish(msg)
         self.get_logger().info("Registration message published: {}".format(msg.data))
-
 
     def navigation_subscriber_callback(self, msg):
         self.get_logger().info('\nGot a Nagivation request: "%s"' % msg.data)
@@ -72,11 +91,10 @@ class DeliveryBotNode(Node):
     def create_msg_id(self):
         return str(uuid.uuid1())
 
-
 def main(args=None):
     rclpy.init(args=args)
 
-    node = TablebotNode()
+    node = DeliveryBotNode()
 
     rclpy.spin(node)
 
